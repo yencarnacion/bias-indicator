@@ -1,0 +1,8 @@
+.env
+.git-real/
+.agents/
+.codex/
+replay-*.jsonl
+state.json
+*.log
+tmp/

@@ -1,0 +1,428 @@
+For this project, use expert-level Go, real-time market data, web dashboard, day-trading, scalping, and Massive.com API knowledge.
+
+Build a real-time “Watchlist Bias” indicator for U.S. equities.
+
+Objective:
+Create a Go application that reads a stock watchlist from `watchlist.csv`, reads settings from `config.yaml`, subscribes to real-time Massive.com stock WebSocket data, calculates how many watchlist symbols are making fast upside or downside moves over a configurable rolling time window, and displays the result on a low-latency web dashboard for a time-constrained scalper.
+
+Important definition of “today”:
+For this project, “today” means the current U.S. trading date from **04:00 AM New York time to 08:00 PM New York time**.
+
+Use the IANA timezone:
+
+`America/New_York`
+
+The app must correctly handle daylight saving time by using `America/New_York`, not a fixed UTC offset.
+
+The active session window is:
+
+`04:00:00` to `20:00:00` New York time.
+
+This includes:
+
+* Premarket: 04:00 AM to 09:30 AM New York time
+* Regular session: 09:30 AM to 04:00 PM New York time
+* After-hours: 04:00 PM to 08:00 PM New York time
+
+The app should reset “today” calculations at 04:00 AM New York time each trading day.
+
+Only data inside the 04:00 AM to 08:00 PM New York time window should count toward:
+
+* today’s accumulated volume
+* the current trading day state
+* up/down filter qualification
+
+Data outside that window should be ignored for the bias calculation.
+
+Data source:
+Use Massive.com Stocks WebSocket.
+
+Default data mode:
+Use per-second aggregate bars from the stocks aggregate-per-second WebSocket feed.
+
+Optional future mode:
+Allow a config option to use tick-level trades instead, but default to per-second aggregates because they are lower-noise and lower-bandwidth for a 2-minute rolling percent-change indicator.
+
+Input files:
+
+1. `watchlist.csv`
+
+   * One ticker per row.
+   * Ignore blank lines.
+   * Normalize symbols to uppercase.
+   * Deduplicate symbols.
+   * Track only symbols in this file.
+
+2. `config.yaml`
+   Include defaults for all settings.
+
+Core calculation:
+
+For each ticker, maintain a rolling window of recent per-second aggregate bars.
+
+Default lookback:
+120 seconds.
+
+For each symbol, calculate:
+
+`change_pct = ((latest_close / close_at_or_before_lookback_time) - 1) * 100`
+
+Where:
+
+* `latest_close` is the most recent per-second aggregate close.
+* `close_at_or_before_lookback_time` is the closest available close at or before `latest_timestamp - lookback_seconds`.
+* If there is insufficient history, mark the symbol as warming up and exclude it from counts.
+* If a symbol has not updated within `max_stale_seconds`, mark it stale and exclude it from counts.
+* Only bars timestamped between 04:00 AM and 08:00 PM New York time should be used.
+
+Volume filter:
+
+Use today’s accumulated volume for the current symbol, counting only data from 04:00 AM to 08:00 PM New York time.
+
+Default:
+`min_today_volume: 1000000`
+
+Important:
+Do not blindly rely on a provider cumulative volume field unless it is confirmed to match the exact 04:00 AM to 08:00 PM New York time session definition. Prefer maintaining an internal session volume counter from eligible per-second aggregate bars or trades.
+
+A symbol qualifies for the up filter when:
+
+* today accumulated volume from 04:00 AM to 08:00 PM New York time >= configured minimum volume
+* rolling change percent >= configured up move percent
+
+Default up move:
+`0.4`
+
+A symbol qualifies for the down filter when:
+
+* today accumulated volume from 04:00 AM to 08:00 PM New York time >= configured minimum volume
+* rolling change percent <= negative configured down move percent
+
+Default down move:
+`0.4`
+
+Use percent units, not decimal units. For example, `0.4` means `0.4%`, not `40%`.
+
+Add optional hysteresis to reduce flicker:
+
+* Up enters at `+0.4%` but exits below `+0.35%`.
+* Down enters at `-0.4%` but exits above `-0.35%`.
+
+Make these configurable.
+
+Dashboard:
+
+Create a local web dashboard served by the Go app.
+
+Default URL:
+`http://localhost:8080`
+
+Update frequency:
+Configurable, default every 1 second.
+
+Dashboard must show:
+
+1. Large UP count
+2. Large DOWN count
+3. Large DELTA
+
+Where:
+
+`delta = up_count - down_count`
+
+Also show:
+
+4. Normalized bias score:
+
+`bias_score = 100 * (up_count - down_count) / max(1, up_count + down_count)`
+
+Display bias score from -100 to +100.
+
+5. Total tracked symbols
+6. Number of warming symbols
+7. Number of stale symbols
+8. Last update timestamp in New York time
+9. WebSocket connection status
+10. Data mode: per-second aggregate or trades
+11. Active session status: active or inactive
+12. Current session window: 04:00 AM to 08:00 PM New York time
+13. Top 10 up symbols ranked by 2-minute percent change
+14. Top 10 down symbols ranked by 2-minute percent change
+
+Dashboard UX requirements:
+
+Design for a scalper who has very little time.
+
+Use:
+
+* Very large fonts for the main counters
+* High contrast
+* Minimal clutter
+* Fast readability from a distance
+* Color coding, but do not rely only on color
+* Clear labels
+* No tiny text for the main signal
+* No unnecessary animations
+* A visible mute button
+* A visible “alerts armed/disarmed” status
+* A visible indication that “today” means 04:00 AM to 08:00 PM New York time
+
+The dashboard should allow fast real-time editing of:
+
+* Up alert threshold
+* Down alert threshold
+* Alert cooldown seconds
+* Alert mute/unmute
+* Up move percent
+* Down move percent
+* Minimum today volume
+* Lookback seconds
+* Max stale seconds
+* Up sound file
+* Down sound file
+* Sound volume
+* Master mute
+
+Changes made in the UI should apply immediately without restarting the app.
+
+Persist UI changes back to `config.yaml` using safe atomic writes.
+
+Sound alerts:
+
+Play a configurable sound when the up count crosses above a configurable threshold.
+
+Default:
+`up_alert_threshold: 0`
+
+If the threshold is 0, the up sound alert is disabled.
+
+Play a configurable sound when the down count crosses above a configurable threshold.
+
+Default:
+`down_alert_threshold: 0`
+
+If the threshold is 0, the down sound alert is disabled.
+
+Supported sound formats:
+
+* `.wav`
+* `.mp3`
+
+The up and down sound files may be either WAV or MP3 files.
+
+Support separate sound files:
+
+* `up_sound_file`
+* `down_sound_file`
+
+Example:
+
+* `sounds/up.wav`
+* `sounds/down.mp3`
+
+Important:
+Do not play the sound every update while the count remains above the threshold.
+
+Alert trigger rule:
+
+* Play only on a crossing from below/equal threshold to above threshold.
+* Then enforce a configurable cooldown.
+* Default cooldown: 30 seconds.
+
+Audio engine / mixer requirements:
+
+Use a browser-based audio mixer for alert playback.
+
+The audio system must:
+
+* Support WAV and MP3 files.
+* Preload and decode configured sound files when possible.
+* Use a real mixer-style playback model so multiple sounds can overlap.
+* Never queue sounds behind each other.
+* Never block a new alert sound because another alert sound is already playing.
+* Allow the up sound and down sound to play at the same time.
+* Allow a later alert to play immediately if the cooldown rules permit it, even if a previous sound is still playing.
+* Avoid using a single shared `HTMLAudioElement` that causes sounds to queue, cut each other off, or wait for prior playback to finish.
+
+Preferred browser implementation:
+Use the Web Audio API.
+
+Recommended approach:
+
+* Create one shared `AudioContext`.
+* Decode each configured MP3/WAV file into an `AudioBuffer`.
+* On each alert, create a new `AudioBufferSourceNode`.
+* Connect it through a gain node for volume control.
+* Connect the gain node to the destination.
+* Start the source immediately.
+* Do not await completion.
+* Do not serialize playback.
+* Do not use a queue.
+
+Add a configurable maximum simultaneous sounds limit to prevent audio chaos.
+
+Default:
+`max_simultaneous_sounds: 4`
+
+If the limit is reached, drop the newest sound or the oldest sound based on a configurable setting.
+
+Default behavior:
+`on_sound_limit: "drop_newest"`
+
+Valid options:
+
+* `drop_newest`
+* `stop_oldest`
+
+Also support:
+
+* master mute
+* per-side mute
+* browser-based sound playback from the web UI
+* volume control from 0.0 to 1.0
+* a “test up sound” button
+* a “test down sound” button
+
+The backend should send alert events to the browser dashboard through WebSocket or Server-Sent Events. The browser should handle actual sound playback so that sound behavior is fast and user-adjustable.
+
+Suggested `config.yaml` structure:
+
+```yaml id="7pdjix"
+massive:
+  api_key_env: "MASSIVE_API_KEY"
+  websocket_url: "wss://socket.massive.com/stocks"
+  data_mode: "second_aggregates"
+
+server:
+  host: "127.0.0.1"
+  port: 8080
+
+watchlist:
+  file: "watchlist.csv"
+
+session:
+  timezone: "America/New_York"
+  start_time: "04:00:00"
+  end_time: "20:00:00"
+  reset_at_start_time: true
+  ignore_data_outside_session: true
+
+calculation:
+  lookback_seconds: 120
+  update_interval_seconds: 1
+  max_stale_seconds: 5
+  min_today_volume: 1000000
+  maintain_internal_session_volume: true
+
+up_filter:
+  move_pct: 0.4
+  exit_move_pct: 0.35
+
+down_filter:
+  move_pct: 0.4
+  exit_move_pct: 0.35
+
+alerts:
+  master_mute: false
+  cooldown_seconds: 30
+  volume: 0.8
+  max_simultaneous_sounds: 4
+  on_sound_limit: "drop_newest"
+
+  up:
+    threshold: 0
+    sound_file: "sounds/up.wav"
+    mute: false
+
+  down:
+    threshold: 0
+    sound_file: "sounds/down.mp3"
+    mute: false
+
+ui:
+  theme: "dark"
+  show_top_symbols: true
+  top_symbol_count: 10
+  show_session_definition: true
+```
+
+Architecture requirements:
+
+Use Go.
+
+Suggested components:
+
+* config loader
+* watchlist loader
+* New York session/timezone manager
+* Massive WebSocket client
+* rolling symbol state manager
+* internal session volume tracker
+* bias calculation engine
+* HTTP server
+* WebSocket or Server-Sent Events channel from backend to browser
+* browser dashboard
+* browser audio mixer using Web Audio API
+* alert manager
+* structured logger
+
+Reliability requirements:
+
+Handle:
+
+* WebSocket reconnects
+* authentication errors
+* malformed messages
+* empty watchlist
+* duplicate symbols
+* missing bars
+* stale symbols
+* market closed periods
+* data received outside 04:00 AM to 08:00 PM New York time
+* session reset at 04:00 AM New York time
+* daylight saving time correctly
+* interrupted connection
+* config update failures
+* missing sound files
+* invalid sound file extensions
+* MP3/WAV decode failures
+* browser autoplay restrictions
+* muted browser tabs
+* overlapping sound playback
+* simultaneous up/down alert events
+
+Testing requirements:
+
+Include unit tests for:
+
+* CSV watchlist loading
+* config defaults
+* New York timezone handling
+* 04:00 AM session reset
+* ignoring data outside 04:00 AM to 08:00 PM New York time
+* internal session volume calculation
+* rolling 2-minute percent-change calculation
+* up/down qualification
+* hysteresis behavior
+* stale symbol exclusion
+* alert threshold crossing
+* alert cooldown
+* normalized bias score calculation
+* MP3/WAV file validation
+* alert event generation
+* max simultaneous sound behavior
+* no sound queue behavior
+
+Include a replay/simulation mode:
+
+* Read sample aggregate messages from a local JSONL file.
+* Simulate the dashboard without connecting to Massive.
+* Replay timestamps using New York time session rules.
+* Confirm that only data between 04:00 AM and 08:00 PM New York time contributes to the calculations.
+* Confirm that alert events fire correctly.
+* Confirm that up and down sounds can overlap and do not queue.
+* This allows testing outside market hours.
+
+Important trading interpretation:
+
+This indicator is not an entry or exit system. It is a market/watchlist breadth and short-term momentum bias tool. It should help a scalper understand whether the watchlist is broadly lifting, broadly selling, or mixed. Individual trades still require confirmation from the specific stock’s chart, liquidity, spread, volume, VWAP, level 2/order flow, catalyst, and risk/reward.

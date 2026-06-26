@@ -1,0 +1,55 @@
+massive:
+  api_key_env: "MASSIVE_API_KEY"
+  websocket_url: "wss://socket.massive.com/stocks"
+  data_mode: "second_aggregates"
+
+server:
+  host: "127.0.0.1"
+  port: 8080
+
+watchlist:
+  file: "watchlist.csv"
+
+session:
+  timezone: "America/New_York"
+  start_time: "04:00:00"
+  end_time: "20:00:00"
+  reset_at_start_time: true
+  ignore_data_outside_session: true
+
+calculation:
+  lookback_seconds: 120
+  update_interval_seconds: 1
+  max_stale_seconds: 5
+  min_today_volume: 1000000
+  maintain_internal_session_volume: true
+
+up_filter:
+  move_pct: 0.4
+  exit_move_pct: 0.35
+
+down_filter:
+  move_pct: 0.4
+  exit_move_pct: 0.35
+
+alerts:
+  master_mute: false
+  cooldown_seconds: 10
+  volume: 0.8
+  max_simultaneous_sounds: 4
+  on_sound_limit: "drop_newest"
+  both_sound_file: "sounds/hey.mp3"
+  up:
+    threshold: 15
+    sound_file: "sounds/up.mp3"
+    mute: false
+  down:
+    threshold: 15
+    sound_file: "sounds/down.mp3"
+    mute: false
+
+ui:
+  theme: "dark"
+  show_top_symbols: true
+  top_symbol_count: 10
+  show_session_definition: true

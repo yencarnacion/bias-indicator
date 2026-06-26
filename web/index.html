@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Watchlist Bias</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="title-row">
+          <h1>Watchlist Bias</h1>
+          <div class="clock" id="clock">--:--:--</div>
+        </div>
+        <div class="session-note" id="sessionNote">Today: 04:00 AM to 08:00 PM New York time</div>
+      </div>
+      <div class="status-strip">
+        <span id="conn">starting</span>
+        <span id="mode">second_aggregates</span>
+        <span id="active">inactive</span>
+        <button id="armBtn" type="button">Arm Alerts</button>
+        <button id="muteBtn" type="button">Mute</button>
+      </div>
+    </header>
+
+    <section class="signal-grid">
+      <div class="signal up" id="upCard">
+        <div class="leader-badge">LEADING</div>
+        <div class="label">UP</div>
+        <div class="value" id="upCount">0</div>
+      </div>
+      <div class="signal down" id="downCard">
+        <div class="leader-badge">LEADING</div>
+        <div class="label">DOWN</div>
+        <div class="value" id="downCount">0</div>
+      </div>
+      <div class="signal delta">
+        <div class="label">DELTA</div>
+        <div class="value" id="delta">0</div>
+        <div class="score"><span id="biasScore">0</span> bias</div>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div><b id="tracked">0</b><span>tracked</span></div>
+      <div><b id="warming">0</b><span>warming</span></div>
+      <div><b id="stale">0</b><span>stale</span></div>
+      <div><b id="lastUpdate">--</b><span>last update</span></div>
+    </section>
+
+    <section class="content-grid">
+      <section class="panel">
+        <h2>Top Up</h2>
+        <ol id="topUp" class="rank"></ol>
+      </section>
+      <section class="panel">
+        <h2>Top Down</h2>
+        <ol id="topDown" class="rank"></ol>
+      </section>
+      <section class="panel controls">
+        <h2>Live Controls</h2>
+        <form id="configForm">
+          <label>Up Alert Threshold <input name="upThreshold" type="number" min="0" step="1"></label>
+          <label>Down Alert Threshold <input name="downThreshold" type="number" min="0" step="1"></label>
+          <label>Alert Cooldown Seconds <input name="cooldown" type="number" min="0" step="1"></label>
+          <label>Up Move Percent <input name="upMove" type="number" min="0" step="0.01"></label>
+          <label>Down Move Percent <input name="downMove" type="number" min="0" step="0.01"></label>
+          <label>Minimum Today Volume <input name="minVolume" type="number" min="0" step="1000"></label>
+          <label>Lookback Seconds <input name="lookback" type="number" min="1" step="1"></label>
+          <label>Max Stale Seconds <input name="stale" type="number" min="1" step="1"></label>
+          <label>Up Sound File <input name="upSound" type="text" spellcheck="false"></label>
+          <label>Down Sound File <input name="downSound" type="text" spellcheck="false"></label>
+          <label>Sound Volume <input name="volume" type="range" min="0" max="1" step="0.01"></label>
+          <label>Max Simultaneous Sounds <input name="maxSounds" type="number" min="1" step="1"></label>
+          <label>Sound Limit Policy
+            <select name="soundPolicy">
+              <option value="drop_newest">drop_newest</option>
+              <option value="stop_oldest">stop_oldest</option>
+            </select>
+          </label>
+          <label class="check"><input name="masterMute" type="checkbox"> Master mute</label>
+          <label class="check"><input name="upMute" type="checkbox"> Up sound mute</label>
+          <label class="check"><input name="downMute" type="checkbox"> Down sound mute</label>
+          <div class="buttons">
+            <button type="submit">Save</button>
+            <button id="testUp" type="button">Test Up</button>
+            <button id="testDown" type="button">Test Down</button>
+          </div>
+          <div id="saveState" class="save-state"></div>
+        </form>
+      </section>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
