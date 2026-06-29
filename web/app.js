@@ -30,6 +30,7 @@ function setConfigToForm(cfg) {
   form.minVolume.value = cfg.calculation.min_today_volume;
   form.lookback.value = cfg.calculation.lookback_seconds;
   form.stale.value = cfg.calculation.max_stale_seconds;
+  form.feedLag.value = cfg.calculation.max_feed_lag_seconds ?? 15;
   form.upSound.value = cfg.alerts.up.sound_file;
   form.downSound.value = cfg.alerts.down.sound_file;
   form.volume.value = cfg.alerts.volume;
@@ -54,6 +55,7 @@ function formToConfig() {
   cfg.calculation.min_today_volume = Number(form.minVolume.value);
   cfg.calculation.lookback_seconds = Number(form.lookback.value);
   cfg.calculation.max_stale_seconds = Number(form.stale.value);
+  cfg.calculation.max_feed_lag_seconds = Number(form.feedLag.value);
   cfg.alerts.up.sound_file = form.upSound.value.trim();
   cfg.alerts.down.sound_file = form.downSound.value.trim();
   cfg.alerts.volume = Number(form.volume.value);
@@ -88,6 +90,7 @@ function renderSnapshot(s) {
   $("warming").textContent = fmt(s.warming);
   $("stale").textContent = fmt(s.stale);
   $("lastUpdate").textContent = s.last_update || "--";
+  updateDataFreshness(s);
   updateClockFromSnapshot(s);
   $("conn").textContent = s.connection_status || "unknown";
   $("mode").textContent = s.data_mode || "second_aggregates";
@@ -97,6 +100,31 @@ function renderSnapshot(s) {
   renderRanks("topUp", s.top_up || [], true);
   renderRanks("topDown", s.top_down || [], false);
   if (s.config) currentConfig = s.config;
+}
+
+function updateDataFreshness(s) {
+  const el = $("dataFresh");
+  const lag = Number(s.data_lag_seconds || 0);
+  const maxLag = Number(s.max_feed_lag_seconds || s.config?.calculation?.max_feed_lag_seconds || 15);
+  el.classList.remove("fresh", "late", "waiting", "inactive");
+  document.body.classList.toggle("data-late", Boolean(s.data_late));
+  if (!s.active_session) {
+    el.textContent = "data idle";
+    el.classList.add("inactive");
+    return;
+  }
+  if (s.data_late) {
+    el.textContent = `data late ${lag}s > ${maxLag}s`;
+    el.classList.add("late");
+    return;
+  }
+  if (lag > 0) {
+    el.textContent = `data lag ${lag}s / ${maxLag}s`;
+    el.classList.add("fresh");
+    return;
+  }
+  el.textContent = "waiting data";
+  el.classList.add("waiting");
 }
 
 function colorBias(delta) {

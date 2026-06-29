@@ -35,6 +35,7 @@ type Config struct {
 		LookbackSeconds               int   `yaml:"lookback_seconds" json:"lookback_seconds"`
 		UpdateIntervalSeconds         int   `yaml:"update_interval_seconds" json:"update_interval_seconds"`
 		MaxStaleSeconds               int   `yaml:"max_stale_seconds" json:"max_stale_seconds"`
+		MaxFeedLagSeconds             int   `yaml:"max_feed_lag_seconds" json:"max_feed_lag_seconds"`
 		MinTodayVolume                int64 `yaml:"min_today_volume" json:"min_today_volume"`
 		MaintainInternalSessionVolume bool  `yaml:"maintain_internal_session_volume" json:"maintain_internal_session_volume"`
 	} `yaml:"calculation" json:"calculation"`
@@ -92,6 +93,7 @@ func DefaultConfig() Config {
 	c.Calculation.LookbackSeconds = 120
 	c.Calculation.UpdateIntervalSeconds = 1
 	c.Calculation.MaxStaleSeconds = 5
+	c.Calculation.MaxFeedLagSeconds = 15
 	c.Calculation.MinTodayVolume = 1000000
 	c.Calculation.MaintainInternalSessionVolume = true
 	c.UpFilter.MovePct = 0.4
@@ -204,6 +206,9 @@ func normalizeConfig(c *Config) {
 	}
 	if c.Calculation.MaxStaleSeconds <= 0 {
 		c.Calculation.MaxStaleSeconds = def.Calculation.MaxStaleSeconds
+	}
+	if c.Calculation.MaxFeedLagSeconds <= 0 {
+		c.Calculation.MaxFeedLagSeconds = def.Calculation.MaxFeedLagSeconds
 	}
 	if c.Calculation.MinTodayVolume < 0 {
 		c.Calculation.MinTodayVolume = def.Calculation.MinTodayVolume

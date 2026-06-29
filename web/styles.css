@@ -78,6 +78,32 @@ button {
 button { cursor: pointer; font-weight: 700; }
 button:hover { border-color: #3f516b; }
 
+.status-strip .data-state {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-strip .data-state.fresh {
+  border-color: rgba(33, 208, 122, 0.7);
+  color: var(--up);
+}
+
+.status-strip .data-state.late {
+  border-color: rgba(255, 75, 95, 0.95);
+  background: rgba(255, 75, 95, 0.14);
+  color: #ffd7dc;
+}
+
+.status-strip .data-state.waiting,
+.status-strip .data-state.inactive {
+  border-color: rgba(245, 184, 66, 0.65);
+  color: var(--warn);
+}
+
+body.data-late .signal {
+  border-color: rgba(255, 75, 95, 0.7);
+}
+
 .signal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

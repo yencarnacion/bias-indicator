@@ -21,6 +21,7 @@ calculation:
   lookback_seconds: 120
   update_interval_seconds: 1
   max_stale_seconds: 5
+  max_feed_lag_seconds: 15
   min_today_volume: 1000000
   maintain_internal_session_volume: true
 

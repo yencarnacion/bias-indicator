@@ -86,6 +86,9 @@ func TestConfigDefaultsAndSoundValidation(t *testing.T) {
 	if cfg.Massive.DataMode != "second_aggregates" || cfg.Session.Timezone != "America/New_York" {
 		t.Fatalf("defaults not applied: %+v", cfg)
 	}
+	if cfg.Calculation.MaxFeedLagSeconds != 15 {
+		t.Fatalf("max_feed_lag_seconds=%d want 15", cfg.Calculation.MaxFeedLagSeconds)
+	}
 	if err := validateSoundFile("sounds/up.wav"); err != nil {
 		t.Fatal(err)
 	}
@@ -178,6 +181,39 @@ func TestStaleAndWarmingExclusions(t *testing.T) {
 	snap = e.Snapshot(cfg, t0.Add(126*time.Second), "test")
 	if snap.Stale != 1 || snap.UpCount != 0 {
 		t.Fatalf("stale=%d up=%d want stale 1 up 0", snap.Stale, snap.UpCount)
+	}
+}
+
+func TestLateFeedZerosSignalsAndSetsIndicator(t *testing.T) {
+	cfg := testConfig()
+	cfg.Calculation.LookbackSeconds = 1
+	cfg.Calculation.MaxStaleSeconds = 60
+	cfg.Calculation.MaxFeedLagSeconds = 15
+	cfg.UpFilter.MovePct = 0.4
+	cfg.UpFilter.ExitMovePct = 0.35
+	sm := mustSession(t, cfg)
+	e := NewEngine([]string{"AAPL"}, sm)
+	t0 := nyTime(t, "2026-06-26 10:00:00")
+	e.ApplyBar(Bar{Symbol: "AAPL", TS: t0, Close: 100, Volume: 100}, cfg)
+	e.ApplyBar(Bar{Symbol: "AAPL", TS: t0.Add(time.Second), Close: 101, Volume: 100}, cfg)
+
+	fresh := e.Snapshot(cfg, t0.Add(16*time.Second), "test")
+	if fresh.DataLate {
+		t.Fatalf("exact max lag should not be late: %+v", fresh)
+	}
+	if fresh.UpCount != 1 {
+		t.Fatalf("fresh up_count=%d want 1", fresh.UpCount)
+	}
+
+	late := e.Snapshot(cfg, t0.Add(17*time.Second), "test")
+	if !late.DataLate || late.DataLagSeconds != 16 {
+		t.Fatalf("late indicator data_late=%v lag=%d", late.DataLate, late.DataLagSeconds)
+	}
+	if late.UpCount != 0 || late.DownCount != 0 || late.Delta != 0 || late.BiasScore != 0 {
+		t.Fatalf("late snapshot should zero signals: %+v", late)
+	}
+	if len(late.TopUp) != 0 || len(late.TopDown) != 0 {
+		t.Fatalf("late snapshot should clear ranks: up=%v down=%v", late.TopUp, late.TopDown)
 	}
 }
 

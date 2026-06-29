@@ -44,21 +44,24 @@ type Engine struct {
 }
 
 type Snapshot struct {
-	UpCount          int          `json:"up_count"`
-	DownCount        int          `json:"down_count"`
-	Delta            int          `json:"delta"`
-	BiasScore        float64      `json:"bias_score"`
-	Tracked          int          `json:"tracked"`
-	Warming          int          `json:"warming"`
-	Stale            int          `json:"stale"`
-	LastUpdate       string       `json:"last_update"`
-	ConnectionStatus string       `json:"connection_status"`
-	DataMode         string       `json:"data_mode"`
-	ActiveSession    bool         `json:"active_session"`
-	SessionWindow    string       `json:"session_window"`
-	TopUp            []SymbolRank `json:"top_up"`
-	TopDown          []SymbolRank `json:"top_down"`
-	Config           Config       `json:"config"`
+	UpCount           int          `json:"up_count"`
+	DownCount         int          `json:"down_count"`
+	Delta             int          `json:"delta"`
+	BiasScore         float64      `json:"bias_score"`
+	Tracked           int          `json:"tracked"`
+	Warming           int          `json:"warming"`
+	Stale             int          `json:"stale"`
+	DataLate          bool         `json:"data_late"`
+	DataLagSeconds    int          `json:"data_lag_seconds"`
+	MaxFeedLagSeconds int          `json:"max_feed_lag_seconds"`
+	LastUpdate        string       `json:"last_update"`
+	ConnectionStatus  string       `json:"connection_status"`
+	DataMode          string       `json:"data_mode"`
+	ActiveSession     bool         `json:"active_session"`
+	SessionWindow     string       `json:"session_window"`
+	TopUp             []SymbolRank `json:"top_up"`
+	TopDown           []SymbolRank `json:"top_down"`
+	Config            Config       `json:"config"`
 }
 
 type SymbolRank struct {
@@ -217,15 +220,20 @@ func (e *Engine) Snapshot(cfg Config, now time.Time, connStatus string) Snapshot
 	topN := cfg.UI.TopSymbolCount
 	var topUp, topDown []SymbolRank
 	snap := Snapshot{
-		Tracked:          len(e.allowed),
-		ConnectionStatus: connStatus,
-		DataMode:         cfg.Massive.DataMode,
-		ActiveSession:    e.session.InSession(now),
-		SessionWindow:    e.session.WindowLabel(),
-		Config:           cfg,
+		Tracked:           len(e.allowed),
+		ConnectionStatus:  connStatus,
+		DataMode:          cfg.Massive.DataMode,
+		ActiveSession:     e.session.InSession(now),
+		SessionWindow:     e.session.WindowLabel(),
+		MaxFeedLagSeconds: cfg.Calculation.MaxFeedLagSeconds,
+		Config:            cfg,
 	}
+	var latestData time.Time
 	for _, st := range e.states {
 		e.recalculateLocked(st, cfg, now)
+		if !st.LastUpdate.IsZero() && (latestData.IsZero() || st.LastUpdate.After(latestData)) {
+			latestData = st.LastUpdate
+		}
 		if st.Warming {
 			snap.Warming++
 		}
@@ -245,6 +253,14 @@ func (e *Engine) Snapshot(cfg Config, now time.Time, connStatus string) Snapshot
 			topDown = append(topDown, r)
 		}
 	}
+	if !latestData.IsZero() {
+		lag := now.Sub(latestData)
+		if lag < 0 {
+			lag = 0
+		}
+		snap.DataLagSeconds = int(lag.Round(time.Second).Seconds())
+		snap.DataLate = snap.ActiveSession && lag > time.Duration(cfg.Calculation.MaxFeedLagSeconds)*time.Second
+	}
 	sort.Slice(topUp, func(i, j int) bool { return topUp[i].ChangePct > topUp[j].ChangePct })
 	sort.Slice(topDown, func(i, j int) bool { return topDown[i].ChangePct < topDown[j].ChangePct })
 	if topN > 0 {
@@ -257,6 +273,14 @@ func (e *Engine) Snapshot(cfg Config, now time.Time, connStatus string) Snapshot
 	}
 	snap.TopUp = topUp
 	snap.TopDown = topDown
+	if snap.DataLate {
+		snap.UpCount = 0
+		snap.DownCount = 0
+		snap.Warming = 0
+		snap.Stale = 0
+		snap.TopUp = nil
+		snap.TopDown = nil
+	}
 	snap.Delta = snap.UpCount - snap.DownCount
 	den := math.Max(1, float64(snap.UpCount+snap.DownCount))
 	snap.BiasScore = 100 * float64(snap.Delta) / den
