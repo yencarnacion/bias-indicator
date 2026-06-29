@@ -276,18 +276,18 @@ body.data-late .signal {
 
 .content-grid > .panel:nth-child(1) h2,
 .content-grid > .panel:nth-child(2) h2 {
-  font-size: 28px;
+  font-size: 22px;
 }
 
 .content-grid > .panel:nth-child(1) .rank li,
 .content-grid > .panel:nth-child(2) .rank li {
-  grid-template-columns: 112px 1fr 180px;
-  font-size: 32px;
+  grid-template-columns: 88px 1fr 140px;
+  font-size: 22px;
 }
 
 .content-grid > .panel:nth-child(1) .rank .vol,
 .content-grid > .panel:nth-child(2) .rank .vol {
-  font-size: 26px;
+  font-size: 18px;
 }
 
 form {
