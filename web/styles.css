@@ -276,18 +276,18 @@ body.data-late .signal {
 
 .content-grid > .panel:nth-child(1) h2,
 .content-grid > .panel:nth-child(2) h2 {
-  font-size: clamp(40.5px, 4.5vw, 63px);
+  font-size: clamp(30.375px, 3.375vw, 47.25px);
 }
 
 .content-grid > .panel:nth-child(1) .rank li,
 .content-grid > .panel:nth-child(2) .rank li {
-  grid-template-columns: 135px 1fr 180px;
-  font-size: clamp(40.5px, 4.5vw, 63px);
+  grid-template-columns: 101px 1fr 135px;
+  font-size: clamp(30.375px, 3.375vw, 47.25px);
 }
 
 .content-grid > .panel:nth-child(1) .rank .vol,
 .content-grid > .panel:nth-child(2) .rank .vol {
-  font-size: clamp(40.5px, 4.5vw, 63px);
+  font-size: clamp(30.375px, 3.375vw, 47.25px);
 }
 
 form {
