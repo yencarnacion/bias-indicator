@@ -22,24 +22,24 @@ body {
 .shell {
   width: min(1440px, 100%);
   margin: 0 auto;
-  padding: 18px;
+  padding: 6px 12px 12px;
 }
 
 .topbar {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
+  gap: 10px;
   align-items: center;
-  padding: 8px 0 16px;
+  padding: 0 0 6px;
 }
 
 h1, h2 { margin: 0; letter-spacing: 0; }
-h1 { font-size: clamp(28px, 4vw, 52px); }
-h2 { font-size: 18px; color: var(--muted); font-weight: 700; }
+h1 { font-size: clamp(16px, 1.8vw, 24px); }
+h2 { font-size: 14px; color: var(--muted); font-weight: 800; }
 .title-row {
   display: flex;
   align-items: baseline;
-  gap: 18px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -48,18 +48,17 @@ h2 { font-size: 18px; color: var(--muted); font-weight: 700; }
   background: #0c1119;
   color: #ffffff;
   border-radius: 6px;
-  padding: 6px 10px;
-  font-size: clamp(26px, 3.2vw, 46px);
+  padding: 3px 7px;
+  font-size: clamp(18px, 2vw, 28px);
   line-height: 1;
   font-weight: 1000;
   font-variant-numeric: tabular-nums;
 }
-.session-note { color: var(--muted); margin-top: 4px; font-size: 16px; }
 
 .status-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 5px;
   justify-content: flex-end;
   align-items: center;
 }
@@ -69,10 +68,10 @@ button {
   border: 1px solid var(--line);
   background: var(--panel2);
   color: var(--text);
-  min-height: 38px;
-  padding: 8px 11px;
+  min-height: 28px;
+  padding: 4px 8px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 button { cursor: pointer; font-weight: 700; }
@@ -107,15 +106,15 @@ body.data-late .signal {
 .signal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
 }
 
 .signal {
   border: 1px solid var(--line);
   background: var(--panel);
   border-radius: 8px;
-  padding: 20px;
-  min-height: 220px;
+  padding: 13px;
+  min-height: 146px;
   display: grid;
   align-content: center;
   text-align: center;
@@ -124,12 +123,12 @@ body.data-late .signal {
 
 .signal .label {
   color: var(--muted);
-  font-size: clamp(20px, 2vw, 34px);
+  font-size: clamp(15px, 1.4vw, 22px);
   font-weight: 900;
 }
 
 .signal .value {
-  font-size: clamp(72px, 14vw, 180px);
+  font-size: clamp(48px, 9.3vw, 120px);
   line-height: .9;
   font-weight: 1000;
 }
@@ -202,8 +201,8 @@ body.data-late .signal {
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 12px 0;
+  gap: 8px;
+  margin: 8px 0;
 }
 
 .metrics div,
@@ -214,42 +213,61 @@ body.data-late .signal {
 }
 
 .metrics div {
-  min-height: 74px;
-  padding: 13px;
+  min-height: 37px;
+  padding: 6px 8px;
 }
 
 .metrics b {
   display: block;
-  font-size: 26px;
+  font-size: 20px;
+  line-height: 1;
 }
 
-.metrics span { color: var(--muted); }
+.metrics span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
 
 .content-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 420px;
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.content-grid > .panel:nth-child(1) {
+  grid-column: 1 / span 2;
+}
+
+.content-grid > .panel:nth-child(2) {
+  grid-column: 3 / span 2;
+}
+
+.content-grid > .panel.controls {
+  grid-column: 1 / -1;
 }
 
 .panel {
-  padding: 16px;
-  min-height: 280px;
+  padding: 10px;
+  min-height: 220px;
 }
 
 .rank {
   list-style: none;
   padding: 0;
-  margin: 12px 0 0;
+  margin: 6px 0 0;
 }
 
 .rank li {
   display: grid;
   grid-template-columns: 72px 1fr 118px;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border-top: 1px solid var(--line);
-  padding: 10px 0;
-  font-size: 18px;
+  padding: 6px 0;
+  font-size: 16px;
 }
 
 .rank .sym { font-weight: 900; }
@@ -295,13 +313,18 @@ input, select {
   .topbar { align-items: flex-start; flex-direction: column; }
   .status-strip { justify-content: flex-start; }
   .content-grid { grid-template-columns: 1fr; }
+  .content-grid > .panel:nth-child(1),
+  .content-grid > .panel:nth-child(2),
+  .content-grid > .panel.controls {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 720px) {
-  .shell { padding: 10px; }
-  .signal-grid,
-  .metrics { grid-template-columns: 1fr; }
-  .signal { min-height: 150px; }
+  .shell { padding: 6px; }
+  .signal-grid { grid-template-columns: 1fr; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .signal { min-height: 98px; }
   form { grid-template-columns: 1fr; }
   .rank li { grid-template-columns: 64px 1fr 92px; }
 }

@@ -96,7 +96,6 @@ function renderSnapshot(s) {
   $("mode").textContent = s.data_mode || "second_aggregates";
   $("active").textContent = s.active_session ? "active session" : "inactive session";
   $("active").style.borderColor = s.active_session ? "var(--up)" : "var(--line)";
-  $("sessionNote").textContent = "Today: " + (s.session_window || "04:00:00 to 20:00:00 New York time");
   renderRanks("topUp", s.top_up || [], true);
   renderRanks("topDown", s.top_down || [], false);
   if (s.config) currentConfig = s.config;
