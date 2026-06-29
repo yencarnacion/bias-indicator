@@ -238,10 +238,12 @@ body.data-late .signal {
 }
 
 .content-grid > .panel:nth-child(1) {
+  border-color: rgba(33, 208, 122, 0.7);
   grid-column: 1 / span 2;
 }
 
 .content-grid > .panel:nth-child(2) {
+  border-color: rgba(255, 75, 95, 0.7);
   grid-column: 3 / span 2;
 }
 
