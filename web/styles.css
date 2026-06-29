@@ -272,7 +272,7 @@ body.data-late .signal {
 
 .rank .sym { font-weight: 900; }
 .rank .pct { text-align: right; font-variant-numeric: tabular-nums; }
-.rank .vol { color: var(--muted); font-size: 13px; }
+.rank .vol { color: var(--muted); font-size: 13px; text-align: right; }
 
 .content-grid > .panel:nth-child(1) h2,
 .content-grid > .panel:nth-child(2) h2 {
@@ -282,6 +282,7 @@ body.data-late .signal {
 .content-grid > .panel:nth-child(1) .rank li,
 .content-grid > .panel:nth-child(2) .rank li {
   grid-template-columns: 101px 1fr 135px;
+  column-gap: 0.35em;
   font-size: clamp(30.375px, 3.375vw, 47.25px);
 }
 
