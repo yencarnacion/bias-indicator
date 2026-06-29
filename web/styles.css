@@ -274,6 +274,22 @@ body.data-late .signal {
 .rank .pct { text-align: right; font-variant-numeric: tabular-nums; }
 .rank .vol { color: var(--muted); font-size: 13px; }
 
+.content-grid > .panel:nth-child(1) h2,
+.content-grid > .panel:nth-child(2) h2 {
+  font-size: 28px;
+}
+
+.content-grid > .panel:nth-child(1) .rank li,
+.content-grid > .panel:nth-child(2) .rank li {
+  grid-template-columns: 112px 1fr 180px;
+  font-size: 32px;
+}
+
+.content-grid > .panel:nth-child(1) .rank .vol,
+.content-grid > .panel:nth-child(2) .rank .vol {
+  font-size: 26px;
+}
+
 form {
   display: grid;
   grid-template-columns: 1fr 1fr;
