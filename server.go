@@ -80,7 +80,11 @@ func NewHTTPHandler(deps ServerDeps) http.Handler {
 		}
 		http.ServeFile(w, r, filepath.Clean(raw))
 	})
-	mux.Handle("/", http.FileServer(http.Dir("web")))
+	static := http.FileServer(http.Dir("web"))
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		static.ServeHTTP(w, r)
+	}))
 	return mux
 }
 
