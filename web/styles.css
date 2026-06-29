@@ -34,12 +34,12 @@ body {
 }
 
 h1, h2 { margin: 0; letter-spacing: 0; }
-h1 { font-size: clamp(64px, 7.2vw, 96px); }
+h1 { font-size: clamp(48px, 5.4vw, 72px); }
 h2 { font-size: 14px; color: var(--muted); font-weight: 800; }
 .title-row {
   display: flex;
   align-items: baseline;
-  gap: 32px;
+  gap: 24px;
   flex-wrap: wrap;
 }
 
@@ -48,8 +48,8 @@ h2 { font-size: 14px; color: var(--muted); font-weight: 800; }
   background: #0c1119;
   color: #ffffff;
   border-radius: 6px;
-  padding: 12px 28px;
-  font-size: clamp(72px, 8vw, 112px);
+  padding: 9px 21px;
+  font-size: clamp(54px, 6vw, 84px);
   line-height: 1;
   font-weight: 1000;
   font-variant-numeric: tabular-nums;
@@ -68,10 +68,10 @@ button {
   border: 1px solid var(--line);
   background: var(--panel2);
   color: var(--text);
-  min-height: 112px;
-  padding: 16px 32px;
+  min-height: 84px;
+  padding: 12px 24px;
   border-radius: 6px;
-  font-size: 48px;
+  font-size: 36px;
 }
 
 button { cursor: pointer; font-weight: 700; }
@@ -276,18 +276,18 @@ body.data-late .signal {
 
 .content-grid > .panel:nth-child(1) h2,
 .content-grid > .panel:nth-child(2) h2 {
-  font-size: clamp(72px, 8vw, 112px);
+  font-size: clamp(54px, 6vw, 84px);
 }
 
 .content-grid > .panel:nth-child(1) .rank li,
 .content-grid > .panel:nth-child(2) .rank li {
-  grid-template-columns: 240px 1fr 320px;
-  font-size: clamp(72px, 8vw, 112px);
+  grid-template-columns: 180px 1fr 240px;
+  font-size: clamp(54px, 6vw, 84px);
 }
 
 .content-grid > .panel:nth-child(1) .rank .vol,
 .content-grid > .panel:nth-child(2) .rank .vol {
-  font-size: clamp(72px, 8vw, 112px);
+  font-size: clamp(54px, 6vw, 84px);
 }
 
 form {
